@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            width: calc(100vw - 2px);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: black;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        table {
+            border-spacing: 0 0.25rem;
+            padding: 0 0.25rem;
+        }
+
+        td {
+            padding: 0.25rem;
+        }
+
+        td:first-child {
+
+        }
+
+        td:last-child {
+
+        }
+        
+        tr:first-child {
+            font-weight: bold;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 3rem;
+            width: 100%;
+            height: 100%;
+        }
+
+        main > * {
+            border: 1px solid white;
+            padding: 1rem;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        #tasks {
+            width: 100%;
+        }
+
+        #store {
+        }
+
+        #events {
+            width: 100%;
+        }
+
+        #cli {
+            background-color: black;
+            color: white;
+            padding: 0.5rem;
+            grid-column: 1 / end;
+            display: flex;
+            align-items: center;
+            font-family: monospace;
+        }
+
+        #input::after {
+            content: attr(data-suggestion);
+            opacity: 0.75;
+            margin-left: 1ch;
+        }
+
+        #input {
+            flex-grow: 1;
+            outline: none;
+        }
+
+        tr:has(td[data-due*="-"]) {
+            background-color: rgb(255, 0, 0, 0.5)
+        }
+
+        tr:has(td[data-due="0"]) {
+            background-color: rgba(0, 119, 255, 0.5)
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div>
+            <h1>Tasks</h1>
+            <table id="tasks">
+                <tr>
+                    <td>ID</td>
+                    <td>Task</td>
+                    <td>points</td>
+                    <td>next</td>
+                    <td>repeat</td>
+                </tr>
+            </table>
+        </div>
+        <div id="store">
+            <h1>Store (<x-x data-refresh="events">get_points()</x-x>)</h1>
+        </div>
+        <div>
+            <h1>Calendar</h1>
+            <table id="calendar">
+                <tr>
+                    <td>ID</td>
+                    <td>Task</td>
+                    <td>create</td>
+                    <td>due</td>
+                </tr>
+            </table>
+        </div>
+        <div>
+            <h1>Events</h1>
+            <table id="events">
+                <tr>
+                    <td>ID</td>
+                    <td>Task</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="cli">
+            <div>$&nbsp;</div><div contenteditable="true" id="input" data-suggestion=""></div>
+        </div>
+    </main>
+    <div id="templates">
+        <template id="task-template">
+            <tr class="task">
+                <td>{id}</td>
+                <td>{name}</td>
+                <td>{points}</td>
+                <td>{row.next.due.pretty()}</td>
+                <td>{row.repeat_config.type}</td>
+            </tr>
+        </template>
+        <template id="event-template">
+            <tr class="event">
+                <td>{id}</td>
+                <td>{row.task.name}</td>
+                <td>{row.frozen_task.points}</td>
+            </tr>
+        </template>
+        <template id="calendar-template">
+            <tr class="calendar">
+                <td>id</td>
+                <td>{row.task.id}</td>
+                <td>{row.repeat.create.pretty()}</td>
+                <td data-due="{row.repeat.due.daysUntil()}">{row.repeat.due.daysUntil()}</td>
+            </tr>
+        </template>
+    </div>
+    <script src="date.js"></script>
+    <script src="repeat.js"></script>
+    <script src="event.js"></script>
+    <script src="task.js"></script>
+    <script>
+        window.database = {
+            tasks: [
+                new Task({ id: 0, name: "test lol", repeat_config: { type: "inf" }, points: 50, start: new Date("2024-10-10") }),
+                new Task({ id: 30, name: "test lol", repeat_config: { type: "inf" }, points: 50, start: new Date("2024-10-10") }),
+                new Task({ id: 32, name: "test lol", repeat_config: { type: "inf" }, points: 50, start: new Date("2024-10-10") }),
+                new Task({ id: 33, name: "test lol", repeat_config: { type: "inf" }, points: 50, start: new Date("2024-10-10") }),
+                new Task({ id: 31, name: "test lol", repeat_config: { type: "daily" }, points: 50, start: new Date("2024-10-01") }),
+                new Task({ id: 2, name: "test lol", repeat_config: { type: "weekly", weekdays: [SUN] }, points: 50, start: new Date("2024-10-01") }),
+            ],
+            events: [
+                new Event({ id: 0, date: new Date(), repeat_date: new Date("2024-10-14"), frozen_task: { id: 1, points: 100 } }),
+                new Event({ id: 1, date: new Date(), repeat_date: new Date("2024-10-06"), frozen_task: { id: 1, points: 100 } }),
+                new Event({ id: 2, date: new Date(), repeat_date: new Date("2024-10-05"), frozen_task: { id: 1, points: 100 } }),
+                new Event({ id: 3, date: new Date(), repeat_date: new Date("2024-10-04"), frozen_task: { id: 1, points: 100 } }),
+                new Event({ id: 4, date: new Date(), repeat_date: new Date("2024-10-09"), frozen_task: { id: 1, points: 100 } }),
+            ],
+            refresh: {
+                events: new Date().getTime()
+            }
+        };
+
+        let task_el = document.querySelector("#tasks");
+        let task_tm = document.querySelector("#task-template");
+
+        let event_el = document.querySelector("#events");
+        let event_tm = document.querySelector("#event-template");
+
+        let calendar_el = document.querySelector("#calendar");
+        let calendar_tm = document.querySelector("#calendar-template");
+
+        function instantiate(template, parent, row) {
+            let instance = template.cloneNode(true);
+
+            let temp = instance.innerHTML;
+
+            let result = "";
+            let expression = "";
+            let evaluated;
+            let inside = false;
+            let indent = 0;
+
+            for (let i = 0; i < temp.length; i++) {
+                let c = temp[i];
+
+                if (inside) {
+                    if (c === "{") indent++;
+
+                    if (c === "}" && indent === 0) {
+                        inside = false;
+
+                        if (row[expression] !== undefined) {
+                            result += row[expression];
+                            continue;
+                        }
+
+                        try { evaluated = eval(expression); } catch (e) { console.log(e) }
+
+                        result += evaluated ?? "";
+
+                        evaluated = "";
+
+                        continue;
+                    }
+
+                    if (c === "}") indent--;
+
+                    expression += c;
+                    
+                    continue;
+                }
+
+                if (c === "{") {
+                    inside = true;
+                    expression = "";
+                    continue;
+                }
+
+                result += c;
+            }
+
+            instance.innerHTML = result;
+
+            parent.appendChild(instance.content);
+        }
+
+        for (let task of database.tasks)
+            instantiate(task_tm, task_el, task);
+
+        for (let event of database.events)
+            instantiate(event_tm, event_el, event);
+
+        for (let t_r of filter_todo(new Date("2024-10-01"), new Date("2024-10-15"))) {
+            instantiate(calendar_tm, calendar_el, t_r);
+        }
+
+        function get_points() {
+            let points = 0;
+
+            for (let event of database.events) {
+                points += event.frozen_task.points;
+            }
+
+            return points;
+        }
+    </script>
+    <script src="cli.js"></script>
+    <script src="x.js"></script>
+    <script src="command.js"></script>
+</body>
+
+</html>

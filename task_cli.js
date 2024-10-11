@@ -1,0 +1,5 @@
+let functions = {
+    task: (input) => {
+        
+    }
+};
