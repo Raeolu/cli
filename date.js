@@ -80,3 +80,10 @@ Date.prototype.sameDay = function(date) {
         this.getMonth() === date.getMonth() &&
         this.getDate() === date.getDate();
 }
+
+Date.prototype.normalize = function() {
+    this.setHours(0);
+    this.setMinutes(0);
+    this.setSeconds(0);
+    this.setMilliseconds(0);
+}

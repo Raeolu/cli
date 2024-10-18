@@ -1,0 +1,96 @@
+body {
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    width: calc(100vw - 2px);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: black;
+    color: white;
+    font-size: 1.5rem;
+}
+
+table {
+    border-spacing: 0 0.25rem;
+    padding: 0 0.25rem;
+}
+
+td {
+    padding: 0.25rem;
+}
+
+td:first-child {
+
+}
+
+td:last-child {
+
+}
+
+tr:first-child {
+    font-weight: bold;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 3rem;
+    width: 100%;
+    height: 100%;
+}
+
+main > * {
+    border: 1px solid white;
+    padding: 1rem;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    box-shadow: inset 0rem -2rem 4rem -1rem rgb(90, 90, 90);
+}
+
+h1 {
+    margin: 0;
+}
+
+#tasks {
+    width: 100%;
+}
+
+#store {
+    display: none;
+}
+
+#events {
+    width: 100%;
+}
+
+#cli {
+    background-color: black;
+    color: white;
+    padding: 0.5rem;
+    grid-column: 1 / end;
+    display: flex;
+    align-items: center;
+    font-family: monospace;
+    box-shadow: none;
+}
+
+#input::after {
+    content: attr(data-suggestion);
+    opacity: 0.75;
+}
+
+#input {
+    flex-grow: 1;
+    outline: none;
+}
+
+tr:has(td[data-due*="-"]) {
+    background-color: rgb(255, 0, 0, 0.5)
+}
+
+tr:has(td[data-due="0"]) {
+    background-color: rgba(0, 119, 255, 0.5)
+}
+
+tr[data-done="true"] {
+    text-decoration: line-through;
+}

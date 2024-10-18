@@ -1,4 +1,6 @@
 function get_repeat(start, end, repeat_config) {
+    start.normalize();
+    end.normalize();
     let current = start.getTime();
     let repeats = [];
     let week = 1;
@@ -99,6 +101,10 @@ class Repeat {
     constructor(repeat) {
         this.create = new Date(repeat.create);
         this.due = new Date(repeat.due);
+    }
+
+    get id() {
+        return `${this.create.getTime()},${this.due.getTime()}`;
     }
 
     toString() {
